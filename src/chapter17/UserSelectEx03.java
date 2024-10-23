@@ -3,15 +3,16 @@ package chapter17;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class UserAddEx02 {
+public class UserSelectEx03 {
 
 	public static void main(String[] args) {
 		
 		Connection con = null;
-		
-		try {
+
+	      try {
 	         // 1. JDBC 드라이버 로드
 	         Class.forName("oracle.jdbc.OracleDriver");
 
@@ -26,21 +27,29 @@ public class UserAddEx02 {
 	         con = DriverManager.getConnection(url, user, password);
 
 	         // 3. 매개 변수화된 SQL 문 작성
-	         String sql = "INSERT INTO usertbl(userid, name, password, age, email) ";
-	         sql += "VALUES (?,?,?,?,?)";
-
+	         String sql = "SELECT userid, name, password, age, email FROM usertbl WHERE userid=?"; //필드는 대소문자까지 정확해야함
+	         //"SELECT * FROM usertbl WHERE userid=?"으로 해도됨.
+	         
 	         // 4. PreparedStatement 얻기 및 값 지정
-	         PreparedStatement pstmt = con.prepareStatement(sql);
+	         PreparedStatement pstmt = con.prepareStatement(sql); //sql형변환
 	         pstmt.setString(1, "eunjeong");
-	         pstmt.setString(2, "연동");
-	         pstmt.setString(3, "12345");
-	         pstmt.setInt(4, 20);
-	         pstmt.setString(5, "ej@company.com");
 
-	         // 5. SQL 구문 실행 후 실행된 행 수 반환 받기
-	         int rows = pstmt.executeUpdate();  //play 버튼 누른것과 같다.
-	         System.out.println("추가된 user 수 : " + rows);
+	         // 5. SQL 구문 실행
+	         ResultSet rs = pstmt.executeQuery();  //자바에서 hasnext로 받아오던 것과 똑같다.
+	         if (rs.next()) {
+	            UserDTO userDto = new UserDTO();
+	            userDto.setUserid(rs.getString("userid"));
+	            userDto.setName(rs.getString("name"));
+	            userDto.setPassword(rs.getString("password"));
+	            userDto.setAge(rs.getInt("age"));
+	            userDto.setEmail(rs.getString("email"));
 
+	            System.out.println(userDto);
+	         } else {
+	            System.out.println("사용자 아이디가 존재하지 않음");
+	         }
+
+	         rs.close();
 	         pstmt.close();
 
 	      } catch (ClassNotFoundException e) {
@@ -56,7 +65,5 @@ public class UserAddEx02 {
 	            }
 	         }
 	      }
-		
-		
 	}
 }
